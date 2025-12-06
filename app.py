@@ -41,9 +41,9 @@ with colA:
         """, unsafe_allow_html=True)
     
     conf_fast = st.slider(
-    " ",
+    "Confidence Fast RCNN",
     0.1, 1.0, 0.7, 0.05,
-    help="Higher = stricter detection"
+    label_visibility="collapsed"
 )
 
 with colB:
@@ -54,9 +54,9 @@ with colB:
         """, unsafe_allow_html=True)
     
     conf_ssd = st.slider(
-    "",
-    0.1, 1.0, 0.4, 0.05,
-    help="Higher = stricter detection"
+    "Confidence SSD", 
+    0.1, 1.0, 0.5,
+    label_visibility="collapsed"
 )
 st.markdown("<br>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader(
