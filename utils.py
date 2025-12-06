@@ -84,19 +84,16 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
 
-    print("[INFO] Converting image tensor to numpy...", flush=True)
     img = img_tensor.cpu().float().clone().numpy()
     for c in range(3):
         img[c] = img[c] * std[c] + mean[c]
 
     img = np.clip(img.transpose(1, 2, 0), 0, 1)
-    print("[INFO] Image normalized and ready for plotting.", flush=True)
 
     fig, ax = plt.subplots(1, figsize=(12, 9))
     ax.imshow(img)
     ax.set_facecolor('#1a1a1a')
     fig.patch.set_facecolor('#0e0e0e')
-    print("[INFO] Figure created.", flush=True)
 
     boxes = outputs.get("boxes", [])
     scores = outputs.get("scores", [])
@@ -139,10 +136,8 @@ def draw_boxes(img_tensor, outputs, title, class_names):
 
     ax.axis("off")
     plt.tight_layout(pad=0)
-    print("[INFO] Showing plot in Streamlit...", flush=True)
     st.pyplot(fig, use_container_width=True)
     plt.close(fig)
-    print("[INFO] Plot closed.", flush=True)
 
 
 def run_inference(image, model, score_thresh=0.5):

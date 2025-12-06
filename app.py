@@ -1,7 +1,7 @@
 import streamlit as st
 from utils import *
 from PIL import Image
-import concurrent.futures
+import gc
 
 st.set_page_config(
     page_title="Mask Detection",
@@ -91,17 +91,9 @@ if uploaded_file:
     if detect:
         st.markdown("<br>", unsafe_allow_html=True)
         
-        progress_bar = st.progress(0)
         status_text = st.empty()
         
         status_text.markdown('<div class="status-text">🚀 Running inference...</div>', unsafe_allow_html=True)
-        progress_bar.progress(20)
-        
-        def run_fast():
-            return run_inference(image, fasterrcnn_model, conf_fast)
-        
-        def run_ssd():
-            return run_inference(image, ssd300_model, conf_ssd)
         
         fast = run_inference(image, fasterrcnn_model, conf_fast)
         ssd = run_inference(image, ssd300_model, conf_ssd)
@@ -133,5 +125,7 @@ if uploaded_file:
             """, unsafe_allow_html=True)
             draw_boxes(ssd["img_tensor"], ssd["outputs"], "SSD300", class_names)
         
-        progress_bar.empty()
         status_text.empty()
+        del fast, ssd
+        torch.cuda.empty_cache()  # chỉ dùng GPU
+        gc.collect()
