@@ -7,9 +7,9 @@ torchvision==0.23.0
 torchaudio==2.8.0
 torchmetrics==1.4.0
 
-# Basic libs
-numpy==1.26.4
-pillow==10.4.0
+# Basic libs (bắt buộc nâng version để hỗ trợ Python 3.13)
+numpy>=2.1.0
+pillow>=11.0.0
 matplotlib==3.8.4
 tqdm==4.66.4
 pandas==2.2.2
