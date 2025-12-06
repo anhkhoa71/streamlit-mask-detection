@@ -142,7 +142,7 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     print("[INFO] Showing plot in Streamlit...", flush=True)
     st.pyplot(fig, use_container_width=True)
     try:
-        st.close(fig)
+        plt.close(fig)
     except Exception as e:
         print("[ERROR] Streamlit close failed:", e, flush=True)
 
