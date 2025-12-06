@@ -150,7 +150,7 @@ def run_inference(image, model, score_thresh=0.5):
 
     start = time.time()
     with torch.no_grad():
-        with torch.cuda.amp.autocast(enabled=(device == "cuda")):
+        with torch.amp.autocast("cuda", enabled=(device == "cuda")):
             output = model([img_tensor])[0]
     
     if device == "cuda":

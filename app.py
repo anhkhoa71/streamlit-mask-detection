@@ -60,8 +60,9 @@ with colB:
 )
 st.markdown("<br>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader(
-    "",
-    type=["jpg", "png", "jpeg"],
+    "Upload image",
+    type=["jpg", "png"],
+    label_visibility="collapsed"
 )
 
 
@@ -69,7 +70,7 @@ uploaded_file = st.file_uploader(
 if uploaded_file:
     st.markdown("<br>", unsafe_allow_html=True)
     
-    detect = st.button("🔍 Start Detection", key="detect_btn", use_container_width=True)
+    detect = st.button("🔍 Start Detection", key="detect_btn", width="stretch")
     
     image = Image.open(uploaded_file)
     image = correct_orientation(image).convert("RGB")
