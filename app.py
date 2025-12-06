@@ -45,7 +45,7 @@ with colA:
     
     conf_fast = st.slider(
         "Confidence Fast RCNN",
-        0.1, 1.0, 0.7, 0.5,
+        0.1, 1.0, 0.7, 0.05,
         label_visibility="collapsed"
     )
 
@@ -58,7 +58,7 @@ with colB:
     
     conf_ssd = st.slider(
         "Confidence SSD", 
-        0.1, 1.0, 0.4, 0.5,
+        0.1, 1.0, 0.4, 0.05,
         label_visibility="collapsed"
     )
 
