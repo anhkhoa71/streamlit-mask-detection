@@ -103,17 +103,8 @@ if uploaded_file:
         def run_ssd():
             return run_inference(image, ssd300_model, conf_ssd)
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            future_fast = executor.submit(run_fast)
-            future_ssd = executor.submit(run_ssd)
-            
-            progress_bar.progress(50)
-            
-            fast = future_fast.result()
-            progress_bar.progress(75)
-            
-            ssd = future_ssd.result()
-            progress_bar.progress(100)
+        fast = run_inference(image, fasterrcnn_model, conf_fast)
+        ssd = run_inference(image, ssd300_model, conf_ssd)
         
         status_text.markdown('<div class="status-text">Detection completed!</div>', unsafe_allow_html=True)
         
