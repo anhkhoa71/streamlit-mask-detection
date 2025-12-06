@@ -58,7 +58,7 @@ with colB:
     
     conf_ssd = st.slider(
         "Confidence SSD", 
-        0.1, 1.0, 0.5,
+        0.1, 1.0, 0.4, 0.5,
         label_visibility="collapsed"
     )
 
