@@ -70,7 +70,7 @@ uploaded_file = st.file_uploader(
 if uploaded_file:
     st.markdown("<br>", unsafe_allow_html=True)
     
-    detect = st.button("🔍 Start Detection", key="detect_btn", use_container_width=True)
+    detect = st.button("🔍 Start Detection", key="detect_btn")
     
     image = Image.open(uploaded_file)
     image = correct_orientation(image).convert("RGB")
