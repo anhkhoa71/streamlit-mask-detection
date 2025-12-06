@@ -10,6 +10,9 @@ models/
 *.wav
 *.flac
 *.mp3
+*.mp4
+*.zip
+submit/
 
 # Model checkpoints
 checkpoints/

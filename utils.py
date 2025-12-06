@@ -4,11 +4,14 @@ import torchvision
 from huggingface_hub import hf_hub_download
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision import transforms
+import matplotlib
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import streamlit as st
 from PIL import Image, ExifTags
 import numpy as np
+import gc
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -42,11 +45,14 @@ def load_fasterrcnn():
 
     state_dict = torch.load(ckpt_path, map_location=device, weights_only=True)
     model.load_state_dict(state_dict)
+    del state_dict  # Giải phóng state_dict ngay
+    
     model.to(device).eval()
     
     for param in model.parameters():
         param.requires_grad = False
     
+    # Chỉ dùng half precision cho GPU
     if device == "cuda":
         model = model.half()
     
@@ -62,11 +68,14 @@ def load_ssd300():
     
     state_dict = torch.load(ckpt_path, map_location=device, weights_only=True)
     model.load_state_dict(state_dict)
+    del state_dict  # Giải phóng state_dict ngay
+    
     model.to(device).eval()
     
     for param in model.parameters():
         param.requires_grad = False
     
+    # Chỉ dùng half precision cho GPU
     if device == "cuda":
         model = model.half()
     
@@ -80,17 +89,18 @@ COLOR_MAP = {
 }
 
 def draw_boxes(img_tensor, outputs, title, class_names):
-    import sys
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
-    img = img_tensor.cpu().float().clone().numpy()
+    # Chuyển sang numpy và denormalize
+    img = img_tensor.cpu().numpy()
     for c in range(3):
         img[c] = img[c] * std[c] + mean[c]
 
     img = np.clip(img.transpose(1, 2, 0), 0, 1)
 
-    fig, ax = plt.subplots(1, figsize=(12, 9))
+    # Tạo figure với DPI thấp hơn để giảm RAM
+    fig, ax = plt.subplots(1, figsize=(10, 7.5), dpi=80)
     ax.imshow(img)
     ax.set_facecolor('#1a1a1a')
     fig.patch.set_facecolor('#0e0e0e')
@@ -99,12 +109,8 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     scores = outputs.get("scores", [])
     labels = outputs.get("labels", [])
 
-    if len(boxes) == 0:
-        print("[INFO] No detections above threshold. Drawing empty image.", flush=True)
-    else:
-        print(f"[INFO] Found {len(boxes)} boxes. Drawing boxes...", flush=True)
-        for i, (box, score, label) in enumerate(zip(boxes, scores, labels)):
-            print(f"[INFO] Drawing box {i+1}/{len(boxes)}: class={class_names[label]}, score={score:.2f}", flush=True)
+    if len(boxes) > 0:
+        for box, score, label in zip(boxes, scores, labels):
             xmin, ymin, xmax, ymax = box
             w, h = xmax - xmin, ymax - ymin
             class_name = class_names[label]
@@ -136,8 +142,14 @@ def draw_boxes(img_tensor, outputs, title, class_names):
 
     ax.axis("off")
     plt.tight_layout(pad=0)
+    
+    # Hiển thị và đóng figure ngay
     st.pyplot(fig, use_container_width=True)
     plt.close(fig)
+    
+    # Giải phóng memory
+    del fig, ax, img
+    gc.collect()
 
 
 def run_inference(image, model, score_thresh=0.5):
@@ -151,12 +163,16 @@ def run_inference(image, model, score_thresh=0.5):
 
     img_tensor = transform(image).to(device)
     
+    # Chỉ dùng half precision cho GPU
     if device == "cuda":
         img_tensor = img_tensor.half()
 
     start = time.time()
     with torch.no_grad():
-        with torch.amp.autocast("cuda", enabled=(device == "cuda")):
+        if device == "cuda":
+            with torch.amp.autocast("cuda"):
+                output = model([img_tensor])[0]
+        else:
             output = model([img_tensor])[0]
     
     if device == "cuda":
@@ -166,13 +182,16 @@ def run_inference(image, model, score_thresh=0.5):
 
     keep = output["scores"] >= score_thresh
     outputs = {
-        "boxes": output["boxes"][keep].cpu().float().numpy(),
-        "scores": output["scores"][keep].cpu().float().numpy(),
+        "boxes": output["boxes"][keep].cpu().numpy(),
+        "scores": output["scores"][keep].cpu().numpy(),
         "labels": output["labels"][keep].cpu().numpy(),
     }
+    
+    # Giải phóng output tensor ngay
+    del output, keep
 
     return {
-        "img_tensor": img_tensor.float(),
+        "img_tensor": img_tensor.cpu().float(),  # Chuyển về CPU ngay
         "outputs": outputs,
         "infer_time": infer_time
     }

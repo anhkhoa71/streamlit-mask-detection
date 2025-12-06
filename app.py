@@ -2,6 +2,7 @@ import streamlit as st
 from utils import *
 from PIL import Image
 import gc
+import torch
 
 st.set_page_config(
     page_title="Mask Detection",
@@ -21,14 +22,16 @@ st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
 
 class_names = ["background", "with_mask", "without_mask", "mask_weared_incorrect"]
 
+# Load models riêng biệt để tránh tốn RAM
 @st.cache_resource(show_spinner=False)
-def load_models():
-    with st.spinner("🔄 Loading AI models..."):
-        fasterrcnn = load_fasterrcnn()
-        ssd300 = load_ssd300()
-    return fasterrcnn, ssd300
+def get_fasterrcnn():
+    with st.spinner("🔄 Loading Faster R-CNN..."):
+        return load_fasterrcnn()
 
-fasterrcnn_model, ssd300_model = load_models()
+@st.cache_resource(show_spinner=False)
+def get_ssd300():
+    with st.spinner("🔄 Loading SSD300..."):
+        return load_ssd300()
 
 st.markdown("<br>", unsafe_allow_html=True)
 colA, colB = st.columns(2)
@@ -41,10 +44,10 @@ with colA:
         """, unsafe_allow_html=True)
     
     conf_fast = st.slider(
-    "Confidence Fast RCNN",
-    0.1, 1.0, 0.7, 0.05,
-    label_visibility="collapsed"
-)
+        "Confidence Fast RCNN",
+        0.1, 1.0, 0.7, 0.05,
+        label_visibility="collapsed"
+    )
 
 with colB:
     st.markdown("""
@@ -54,26 +57,31 @@ with colB:
         """, unsafe_allow_html=True)
     
     conf_ssd = st.slider(
-    "Confidence SSD", 
-    0.1, 1.0, 0.5,
-    label_visibility="collapsed"
-)
+        "Confidence SSD", 
+        0.1, 1.0, 0.5,
+        label_visibility="collapsed"
+    )
+
 st.markdown("<br>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader(
     "Upload image",
-    type=["jpg", "png"],
+    type=["jpg", "png", "jpeg"],
     label_visibility="collapsed"
 )
-
-
 
 if uploaded_file:
     st.markdown("<br>", unsafe_allow_html=True)
     
     detect = st.button("🔍 Start Detection", key="detect_btn")
     
+    # Đọc và xử lý ảnh
     image = Image.open(uploaded_file)
     image = correct_orientation(image).convert("RGB")
+    
+    # Resize ảnh lớn để tiết kiệm RAM
+    max_size = 1024
+    if max(image.size) > max_size:
+        image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
     
     if not detect:    
         st.markdown(
@@ -86,19 +94,25 @@ if uploaded_file:
         )
         col_center = st.columns([1, 3, 1])[1]
         with col_center:
-            st.image(image)
+            st.image(image, use_container_width=True)
     
     if detect:
         st.markdown("<br>", unsafe_allow_html=True)
         
         status_text = st.empty()
         
-        status_text.markdown('<div class="status-text">🚀 Running inference...</div>', unsafe_allow_html=True)
+        # Load models chỉ khi cần
+        status_text.markdown('<div class="status-text">🚀 Loading models...</div>', unsafe_allow_html=True)
+        fasterrcnn_model = get_fasterrcnn()
+        ssd300_model = get_ssd300()
         
+        status_text.markdown('<div class="status-text">🚀 Running Faster R-CNN...</div>', unsafe_allow_html=True)
         fast = run_inference(image, fasterrcnn_model, conf_fast)
+        
+        status_text.markdown('<div class="status-text">🚀 Running SSD300...</div>', unsafe_allow_html=True)
         ssd = run_inference(image, ssd300_model, conf_ssd)
         
-        status_text.markdown('<div class="status-text">Detection completed!</div>', unsafe_allow_html=True)
+        status_text.markdown('<div class="status-text">✅ Detection completed!</div>', unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -126,6 +140,9 @@ if uploaded_file:
             draw_boxes(ssd["img_tensor"], ssd["outputs"], "SSD300", class_names)
         
         status_text.empty()
+        
+        # Dọn dẹp memory ngay sau khi vẽ xong
         del fast, ssd
-        torch.cuda.empty_cache()  # chỉ dùng GPU
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         gc.collect()
