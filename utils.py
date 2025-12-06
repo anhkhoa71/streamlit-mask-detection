@@ -83,7 +83,7 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
 
-    img = img_tensor.cpu().clone().numpy()
+    img = img_tensor.cpu().float().clone().numpy()
     for c in range(3):
         img[c] = img[c] * std[c] + mean[c]
 
@@ -97,6 +97,10 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     boxes = outputs["boxes"]
     scores = outputs["scores"]
     labels = outputs["labels"]
+    
+    if len(boxes) == 0:
+        st.warning("No detections above threshold")
+        return
 
     for box, score, label in zip(boxes, scores, labels):
         xmin, ymin, xmax, ymax = box
