@@ -45,7 +45,7 @@ with colA:
     
     conf_fast = st.slider(
         "Confidence Fast RCNN",
-        0.1, 1.0, 0.7, 0.05,
+        0.1, 1.0, 0.7, 0.5,
         label_visibility="collapsed"
     )
 
