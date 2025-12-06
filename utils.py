@@ -98,40 +98,38 @@ def draw_boxes(img_tensor, outputs, title, class_names):
     scores = outputs["scores"]
     labels = outputs["labels"]
     
-    if len(boxes) == 0:
-        st.warning("No detections above threshold")
-        return
+    if len(boxes) != 0:
 
-    for box, score, label in zip(boxes, scores, labels):
-        xmin, ymin, xmax, ymax = box
-        w, h = xmax - xmin, ymax - ymin
-        
-        class_name = class_names[label]
-        color = COLOR_MAP.get(class_name, "#ffffff")
+        for box, score, label in zip(boxes, scores, labels):
+            xmin, ymin, xmax, ymax = box
+            w, h = xmax - xmin, ymax - ymin
+            
+            class_name = class_names[label]
+            color = COLOR_MAP.get(class_name, "#ffffff")
 
-        rect = patches.Rectangle(
-            (xmin, ymin), w, h,
-            linewidth=3,
-            edgecolor=color,
-            facecolor='none',
-            linestyle='-'
-        )
-        ax.add_patch(rect)
-
-        ax.text(
-            xmin, ymin - 10,
-            f"{class_name.replace('_', ' ').title()} {score*100:.1f}%",
-            color='white',
-            fontsize=11,
-            fontweight='bold',
-            bbox=dict(
-                facecolor=color,
-                alpha=0.85,
-                edgecolor='white',
-                linewidth=1.5,
-                boxstyle='round,pad=0.5'
+            rect = patches.Rectangle(
+                (xmin, ymin), w, h,
+                linewidth=3,
+                edgecolor=color,
+                facecolor='none',
+                linestyle='-'
             )
-        )
+            ax.add_patch(rect)
+
+            ax.text(
+                xmin, ymin - 10,
+                f"{class_name.replace('_', ' ').title()} {score*100:.1f}%",
+                color='white',
+                fontsize=11,
+                fontweight='bold',
+                bbox=dict(
+                    facecolor=color,
+                    alpha=0.85,
+                    edgecolor='white',
+                    linewidth=1.5,
+                    boxstyle='round,pad=0.5'
+                )
+            )
 
     ax.axis("off")
     plt.tight_layout(pad=0)

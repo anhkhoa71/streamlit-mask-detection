@@ -115,7 +115,7 @@ if uploaded_file:
             ssd = future_ssd.result()
             progress_bar.progress(100)
         
-        status_text.markdown('<div class="status-text">✅ Detection completed!</div>', unsafe_allow_html=True)
+        status_text.markdown('<div class="status-text">Detection completed!</div>', unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
