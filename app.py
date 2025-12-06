@@ -94,7 +94,7 @@ if uploaded_file:
         )
         col_center = st.columns([1, 3, 1])[1]
         with col_center:
-            st.image(image, use_container_width=True)
+            st.image(image, use_column_width=True)
     
     if detect:
         st.markdown("<br>", unsafe_allow_html=True)
