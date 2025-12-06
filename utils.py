@@ -131,7 +131,7 @@ def draw_boxes(img_tensor, outputs, title, class_names):
 
     ax.axis("off")
     plt.tight_layout(pad=0)
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig, width="stretch")
     plt.close(fig)
 
 def run_inference(image, model, score_thresh=0.5):
