@@ -1,7 +1,10 @@
-# PyTorch CPU (compatible with HuggingFace Spaces)
-torch==2.1.2
-torchvision==0.16.1
-torchaudio==2.1.2
+# Streamlit
+streamlit>=1.30.0,<2.0
+
+# PyTorch (CPU-only từ PyPI mặc định)
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
 torchmetrics==1.4.0
 
 # Basic libs
